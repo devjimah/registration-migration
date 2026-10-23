@@ -1,3 +1,9 @@
+import type { FieldErrors, RegisterRequest } from '../shared/contracts';
+import { validateRegistration } from '../shared/validation';
+
+export { isEmail } from '../shared/validation';
+
+/** Raw form values: everything is a string, and `confirm` never leaves the browser. */
 export interface RegistrationValues {
   name: string;
   email: string;
@@ -6,33 +12,18 @@ export interface RegistrationValues {
   plan: string;
 }
 
-export type FieldName = keyof RegistrationValues | 'form';
-export type FieldErrors = Partial<Record<FieldName, string>>;
+export type FormErrors = FieldErrors<keyof RegistrationValues>;
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export function validateForm(
+  values: RegistrationValues
+): { ok: true; request: RegisterRequest } | { ok: false; errors: FormErrors } {
+  const result = validateRegistration(values);
+  const errors: FormErrors = result.ok ? {} : { ...result.errors };
 
-export function isEmail(value: string | undefined): boolean {
-  return EMAIL_RE.test(value ?? '');
-}
-
-export function validate(values: RegistrationValues): FieldErrors {
-  const errors: FieldErrors = {};
-
-  if (values.name.trim().length < 2) {
-    errors.name = 'Name must be at least 2 characters';
-  }
-  if (!isEmail(values.email)) {
-    errors.email = 'Enter a valid email address';
-  }
-  if (values.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters';
-  }
   if (values.confirm !== values.password) {
     errors.confirm = 'Passwords do not match';
   }
-  if (!values.plan) {
-    errors.plan = 'Choose a plan';
-  }
 
-  return errors;
+  if (result.ok && !errors.confirm) return { ok: true, request: result.value };
+  return { ok: false, errors };
 }

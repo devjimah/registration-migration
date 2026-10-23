@@ -6,9 +6,10 @@
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "start": "node server/server.js",
-    "test": "tsc --noEmit && playwright test",
-    "typecheck": "tsc --noEmit"
+    "dev:server": "tsx watch server/index.ts",
+    "start": "node dist/server.cjs",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p server",
+    "test": "npm run typecheck && playwright test"
   },
   "dependencies": {
     "express": "^4.22.3",
@@ -16,9 +17,11 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
+    "@types/express": "^4.17.25",
     "@types/jquery": "^4.0.1",
     "@types/node": "^26.6.5",
     "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }

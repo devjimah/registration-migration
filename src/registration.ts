@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import { ApiError, checkEmail, getPlans, register } from './api';
-import { isEmail, validate, type FieldErrors, type RegistrationValues } from './validation';
+import { MESSAGES } from '../shared/validation';
+import { isEmail, validateForm, type FormErrors, type RegistrationValues } from './validation';
 
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
 
@@ -16,7 +17,7 @@ function readValues($form: JQuery<HTMLFormElement>): RegistrationValues {
   return values;
 }
 
-function showErrors($form: JQuery<HTMLFormElement>, errors: FieldErrors): void {
+function showErrors($form: JQuery<HTMLFormElement>, errors: FormErrors): void {
   $form.find('.error').text('');
   $form.find('input, select').removeClass('invalid');
   for (const [field, message] of Object.entries(errors)) {
@@ -25,11 +26,9 @@ function showErrors($form: JQuery<HTMLFormElement>, errors: FieldErrors): void {
   }
 }
 
-/** Pulls field errors out of a 422 body; anything else becomes a generic form error. */
-function errorsFrom(err: unknown): FieldErrors {
-  if (err instanceof ApiError && err.body && typeof err.body === 'object' && 'errors' in err.body) {
-    return (err.body as { errors: FieldErrors }).errors;
-  }
+/** Field errors from a 422; anything else becomes a generic form error. */
+function errorsFrom(err: unknown): FormErrors {
+  if (err instanceof ApiError && err.isValidationError()) return err.body.errors;
   return { form: GENERIC_ERROR };
 }
 
@@ -48,7 +47,7 @@ function bindEmailCheck($form: JQuery<HTMLFormElement>): void {
     if (!isEmail(email)) return;
     try {
       const { available } = await checkEmail(email);
-      if (!available) showErrors($form, { email: 'An account with this email already exists' });
+      if (!available) showErrors($form, { email: MESSAGES.emailTaken });
     } catch {
       // Availability is re-checked on submit; a failed pre-check is not worth surfacing.
     }
@@ -60,19 +59,13 @@ function bindSubmit($form: JQuery<HTMLFormElement>): void {
 
   $form.on('submit', async (e) => {
     e.preventDefault();
-    const values = readValues($form);
-    const errors = validate(values);
-    showErrors($form, errors);
-    if (Object.keys(errors).length) return;
+    const result = validateForm(readValues($form));
+    showErrors($form, result.ok ? {} : result.errors);
+    if (!result.ok) return;
 
     $submit.prop('disabled', true).text('Creating account…');
     try {
-      const { user } = await register({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        plan: values.plan
-      });
+      const { user } = await register(result.request);
       $form.prop('hidden', true);
       $('#success-message').text(`Your account for ${user.email} is ready.`);
       $('#success').prop('hidden', false);

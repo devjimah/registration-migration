@@ -1,28 +1,28 @@
-export interface Plan {
-  id: string;
-  name: string;
-  priceCents: number;
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  plan: string;
-}
-
-export interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
-  plan: string;
-}
+import {
+  ROUTES,
+  type CheckEmailRequest,
+  type CheckEmailResponse,
+  type PlansResponse,
+  type RegisterRequest,
+  type RegisterResponse,
+  type ValidationErrorResponse
+} from '../shared/contracts';
 
 /** Non-2xx response. `body` is the parsed JSON body, or null if it wasn't JSON. */
 export class ApiError extends Error {
   constructor(public readonly status: number, public readonly body: unknown) {
     super(`Request failed with status ${status}`);
     this.name = 'ApiError';
+  }
+
+  /** True for a 422 carrying field errors, as defined by the shared contract. */
+  isValidationError(): this is ApiError & { body: ValidationErrorResponse } {
+    return (
+      this.status === 422 &&
+      typeof this.body === 'object' &&
+      this.body !== null &&
+      typeof (this.body as ValidationErrorResponse).errors === 'object'
+    );
   }
 }
 
@@ -33,22 +33,22 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-function postJSON<T>(url: string, data: unknown): Promise<T> {
-  return request<T>(url, {
+function postJSON<Req, Res>(url: string, data: Req): Promise<Res> {
+  return request<Res>(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
 }
 
-export function getPlans(): Promise<{ plans: Plan[] }> {
-  return request('/api/plans');
+export function getPlans(): Promise<PlansResponse> {
+  return request(ROUTES.plans);
 }
 
-export function checkEmail(email: string): Promise<{ available: boolean }> {
-  return postJSON('/api/check-email', { email });
+export function checkEmail(email: string): Promise<CheckEmailResponse> {
+  return postJSON<CheckEmailRequest, CheckEmailResponse>(ROUTES.checkEmail, { email });
 }
 
-export function register(payload: RegisterPayload): Promise<{ user: User }> {
-  return postJSON('/api/register', payload);
+export function register(payload: RegisterRequest): Promise<RegisterResponse> {
+  return postJSON<RegisterRequest, RegisterResponse>(ROUTES.register, payload);
 }
