@@ -53,10 +53,7 @@
     </div>
   </main>
 
-  <!-- Legacy loading: global jQuery + ordered IIFE scripts sharing window.RegApp -->
-  <script src="/vendor/jquery/jquery.min.js"></script>
-  <script src="/js/validation.js"></script>
-  <script src="/js/api.js"></script>
-  <script src="/js/registration.js"></script>
+  <!-- Single esbuild bundle (jQuery + legacy modules), built from src/main.js -->
+  <script src="/dist/app.js"></script>
 </body>
 </html>

@@ -24,7 +24,6 @@ function findUser(email) {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use('/vendor/jquery', express.static(path.join(__dirname, '..', 'node_modules', 'jquery', 'dist')));
 
 app.get('/api/plans', function (req, res) {
   res.json({ plans: PLANS });
