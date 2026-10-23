@@ -5,7 +5,7 @@ const production = process.env.NODE_ENV === 'production';
 
 /** @type {esbuild.BuildOptions} */
 const options = {
-  entryPoints: ['src/main.js'],
+  entryPoints: ['src/main.ts'],
   outfile: 'public/dist/app.js',
   bundle: true,
   format: 'iife',
