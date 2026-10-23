@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create your account</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Create your account</h1>
+
+    <form id="registration-form" novalidate>
+      <div class="field">
+        <label for="name">Full name</label>
+        <input id="name" name="name" type="text" autocomplete="name">
+        <p class="error" data-error-for="name"></p>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email">
+        <p class="error" data-error-for="email"></p>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="new-password">
+        <p class="error" data-error-for="password"></p>
+      </div>
+
+      <div class="field">
+        <label for="confirm">Confirm password</label>
+        <input id="confirm" name="confirm" type="password" autocomplete="new-password">
+        <p class="error" data-error-for="confirm"></p>
+      </div>
+
+      <div class="field">
+        <label for="plan">Plan</label>
+        <select id="plan" name="plan">
+          <option value="">Loading plans…</option>
+        </select>
+        <p class="error" data-error-for="plan"></p>
+      </div>
+
+      <button id="submit" type="submit">Create account</button>
+      <p class="error" data-error-for="form" role="alert"></p>
+    </form>
+
+    <div id="success" class="success" hidden>
+      <h2>Welcome aboard!</h2>
+      <p id="success-message"></p>
+    </div>
+  </main>
+
+  <!-- Legacy loading: global jQuery + ordered IIFE scripts sharing window.RegApp -->
+  <script src="/vendor/jquery/jquery.min.js"></script>
+  <script src="/js/validation.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/registration.js"></script>
+</body>
+</html>
