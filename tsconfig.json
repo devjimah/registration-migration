@@ -9,12 +9,7 @@
     "noEmit": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-
-    // Migration mode: JS and TS live side by side. Remaining .js files are
-    // bundled but not type-checked; flip checkJs on to tighten further.
-    "allowJs": true,
-    "checkJs": false
+    "skipLibCheck": true
   },
   "include": ["src"]
 }
