@@ -19,11 +19,11 @@ test('POST /api/check-email rejects malformed emails', async ({ request }) => {
 test('POST /api/register returns 201 and a normalised user', async ({ request }) => {
   const email = uniqueEmail();
   const res = await request.post('/api/register', {
-    data: { name: '  Grace Hopper ', email: email.toUpperCase(), password: 'cobol-1959', plan: 'pro' }
+    data: { name: '  Grace Hopper ', email: email.toUpperCase(), password: 'cobol-1959', plan: 'free' }
   });
   expect(res.status()).toBe(201);
   const { user } = await res.json();
-  expect(user).toMatchObject({ name: 'Grace Hopper', email, plan: 'pro' });
+  expect(user).toMatchObject({ name: 'Grace Hopper', email, plan: 'free' });
   expect(user).not.toHaveProperty('password');
 });
 

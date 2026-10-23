@@ -1,6 +1,8 @@
 import $ from 'jquery';
-import { ApiError, checkEmail, getPlans, register } from './api';
+import type { Plan } from '../shared/contracts';
 import { MESSAGES } from '../shared/validation';
+import { ApiError, checkEmail, getPlans, register } from './api';
+import { PaymentError, PaymentStep } from './payments';
 import { isEmail, validateForm, type FormErrors, type RegistrationValues } from './validation';
 
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
@@ -26,19 +28,21 @@ function showErrors($form: JQuery<HTMLFormElement>, errors: FormErrors): void {
   }
 }
 
-/** Field errors from a 422; anything else becomes a generic form error. */
+/** Field errors from a 422 or a card problem; anything else becomes a generic form error. */
 function errorsFrom(err: unknown): FormErrors {
+  if (err instanceof PaymentError) return { payment: err.message };
   if (err instanceof ApiError && err.isValidationError()) return err.body.errors;
   return { form: GENERIC_ERROR };
 }
 
-async function loadPlans(): Promise<void> {
+async function loadPlans(): Promise<Map<string, Plan>> {
   const $plan = $<HTMLSelectElement>('#plan');
   const { plans } = await getPlans();
   $plan.empty().append($('<option>', { value: '', text: 'Select a plan' }));
   for (const plan of plans) {
     $plan.append($('<option>', { value: plan.id, text: `${plan.name} — ${formatPrice(plan.priceCents)}` }));
   }
+  return new Map(plans.map((p) => [p.id, p]));
 }
 
 function bindEmailCheck($form: JQuery<HTMLFormElement>): void {
@@ -54,7 +58,23 @@ function bindEmailCheck($form: JQuery<HTMLFormElement>): void {
   });
 }
 
-function bindSubmit($form: JQuery<HTMLFormElement>): void {
+/** Shows the card form only for paid plans, priced to the selected plan. */
+function bindPlanChange($form: JQuery<HTMLFormElement>, plans: Promise<Map<string, Plan>>, payment: PaymentStep): void {
+  const $section = $('#payment-section');
+  $form.find<HTMLSelectElement>('#plan').on('change', async (e) => {
+    const plan = (await plans).get(e.currentTarget.value);
+    const paid = !!plan && plan.priceCents > 0;
+    $section.prop('hidden', !paid);
+    if (!paid) return;
+    try {
+      await payment.show(plan.priceCents);
+    } catch {
+      $form.find('[data-error-for="payment"]').text('Payments are unavailable right now. Please try again later.');
+    }
+  });
+}
+
+function bindSubmit($form: JQuery<HTMLFormElement>, plans: Promise<Map<string, Plan>>, payment: PaymentStep): void {
   const $submit = $<HTMLButtonElement>('#submit');
 
   $form.on('submit', async (e) => {
@@ -62,10 +82,18 @@ function bindSubmit($form: JQuery<HTMLFormElement>): void {
     const result = validateForm(readValues($form));
     showErrors($form, result.ok ? {} : result.errors);
     if (!result.ok) return;
+    const request = result.request;
 
     $submit.prop('disabled', true).text('Creating account…');
     try {
-      const { user } = await register(result.request);
+      const plan = (await plans).get(request.plan);
+      if (plan && plan.priceCents > 0) {
+        $submit.text('Processing payment…');
+        const { name, email } = request;
+        request.paymentIntentId = await payment.pay({ name, email, plan: plan.id });
+      }
+
+      const { user } = await register(request);
       $form.prop('hidden', true);
       $('#success-message').text(`Your account for ${user.email} is ready.`);
       $('#success').prop('hidden', false);
@@ -79,7 +107,11 @@ function bindSubmit($form: JQuery<HTMLFormElement>): void {
 
 export function initRegistration(): void {
   const $form = $<HTMLFormElement>('#registration-form');
-  void loadPlans();
+  const payment = new PaymentStep('#payment-element');
+  const plans = loadPlans();
+  plans.catch(() => $form.find('[data-error-for="plan"]').text('Could not load plans. Please refresh.'));
+
   bindEmailCheck($form);
-  bindSubmit($form);
+  bindPlanChange($form, plans, payment);
+  bindSubmit($form, plans, payment);
 }

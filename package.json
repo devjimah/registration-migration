@@ -6,14 +6,16 @@
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "dev:server": "tsx watch server/index.ts",
-    "start": "node dist/server.cjs",
+    "dev:server": "tsx watch --env-file-if-exists=.env server/index.ts",
+    "start": "node --env-file-if-exists=.env --enable-source-maps dist/server.cjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p server",
     "test": "npm run typecheck && playwright test"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^10.1.0",
     "express": "^4.22.3",
-    "jquery": "^3.7.1"
+    "jquery": "^3.7.1",
+    "stripe": "^23.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
@@ -23,5 +25,8 @@
     "esbuild": "^0.28.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=22.9"
   }
 }

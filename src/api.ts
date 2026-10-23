@@ -2,6 +2,9 @@ import {
   ROUTES,
   type CheckEmailRequest,
   type CheckEmailResponse,
+  type ConfigResponse,
+  type CreatePaymentIntentRequest,
+  type CreatePaymentIntentResponse,
   type PlansResponse,
   type RegisterRequest,
   type RegisterResponse,
@@ -39,6 +42,14 @@ function postJSON<Req, Res>(url: string, data: Req): Promise<Res> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
+}
+
+export function getConfig(): Promise<ConfigResponse> {
+  return request(ROUTES.config);
+}
+
+export function createPaymentIntent(details: CreatePaymentIntentRequest): Promise<CreatePaymentIntentResponse> {
+  return postJSON<CreatePaymentIntentRequest, CreatePaymentIntentResponse>(ROUTES.paymentIntents, details);
 }
 
 export function getPlans(): Promise<PlansResponse> {

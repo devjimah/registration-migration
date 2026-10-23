@@ -43,6 +43,13 @@
         <p class="error" data-error-for="plan"></p>
       </div>
 
+      <!-- Shown for paid plans. Stripe mounts its Payment Element (an iframe) here. -->
+      <div class="field" id="payment-section" hidden>
+        <label>Payment details</label>
+        <div id="payment-element"></div>
+        <p class="error" data-error-for="payment"></p>
+      </div>
+
       <button id="submit" type="submit">Create account</button>
       <p class="error" data-error-for="form" role="alert"></p>
     </form>

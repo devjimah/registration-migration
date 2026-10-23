@@ -12,7 +12,7 @@ export interface RegistrationValues {
   plan: string;
 }
 
-export type FormErrors = FieldErrors<keyof RegistrationValues>;
+export type FormErrors = FieldErrors<keyof RegistrationValues | 'payment'>;
 
 export function validateForm(
   values: RegistrationValues

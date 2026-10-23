@@ -15,7 +15,8 @@ module.exports = defineConfig({
   webServer: {
     command: 'npm run build && npm start',
     url: `http://localhost:${PORT}/api/plans`,
-    env: { PORT: String(PORT) },
+    // Empty keys force the mock payment gateway, even if .env has real test keys.
+    env: { PORT: String(PORT), STRIPE_SECRET_KEY: '', STRIPE_PUBLISHABLE_KEY: '' },
     reuseExistingServer: false
   }
 });
